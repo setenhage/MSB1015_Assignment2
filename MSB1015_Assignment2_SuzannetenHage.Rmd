@@ -20,7 +20,7 @@ library('rJava')
 #install.packages('rcdk')
 library('rcdk')
 #install.packages('pls')
-library(pls)
+library('pls')
 
 ```
 
@@ -54,3 +54,28 @@ descNames <- c(
 )
 
 descriptors <- eval.desc(parsed_smiles, descNames)
+```
+
+**4. Data pre-processing**
+Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
+
+```{r}
+#Find all rownumbers of the values in Celcius. 
+celcius <-  which(grepl('degree Celsius', data$bpUnitLabel))
+for (i in 1:length(celcius)) {
+  #Convert the value to kelvin
+  data$bp[celcius[i]] <- data$bp[celcius[i]] + 273.15
+  #Convert the label to kelvin. 
+  data$bpUnitLabel[celcius[i]] <- 'kelvin'
+}
+
+#Find all rownumbers of the values in Fahrenheit. 
+fahrenheit <- which(grepl('degree Fahrenheit', data$bpUnitLabel))
+for (i in 1:length(fahrenheit)) {
+  #Convert the value to kelvin
+  data$bp[fahrenheit[i]] <- (data$bp[fahrenheit[i]] + 459.67) * (5/9)
+  #Convert the label to kelvin. 
+  data$bpUnitLabel[fahrenheit[i]] <- 'kelvin'
+}
+
+```
