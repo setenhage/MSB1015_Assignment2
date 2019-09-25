@@ -6,7 +6,7 @@ output: html_notebook
 ---
 
 **Project Description**
-In this project I will train a Partial Least Square (PLS) algorithm to predict the bioling point of alkines from their structure. This is based on data from Wiener, 1947. 
+In this project I will train a Partial Least Square (PLS) algorithm to predict the bioling point of alkines from their structure. 
 
 **0. Load packages**
 If you haven't installed the packages on your computer yet, please uncomment the 
@@ -25,7 +25,7 @@ library(pls)
 ```
 
 **1. Get the data from WikiData.** 
-In this section I use the WikidataQueryServiceR package to obtain all alkines with known boiling points from WikiData. To do this, I first select all chemical compounds (Q11173), their labels and their boiling points (P2102). Next, I select all compounds with a label that is in English and whose label ends with "ane" to select the alkanes. Finally, we select for those alkanes that also have their smile available in the WikiData database. This results in 89 alkanes and their boiling points and smiles. 
+In this section I use the WikidataQueryServiceR package to obtain all simple alkines with known boiling points from WikiData.
 
 ```{r}
 data = query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?smiles WHERE {   
@@ -54,4 +54,3 @@ descNames <- c(
 )
 
 descriptors <- eval.desc(parsed_smiles, descNames)
-```
