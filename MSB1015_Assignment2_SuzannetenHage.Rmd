@@ -1,0 +1,36 @@
+---
+title: "MSB1015_Assignment 2"
+author: "Suus ten Hage"
+date: "25 september 2019"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+**Project Description**
+In this project I will train a Partial Least Square (PLS) algorithm to predict the bioling point of alkines from their structure. This is based on data from Wiener, 1947. 
+
+** 0. Load packages**
+If you haven't installed the packages on your computer yet, please uncomment the 
+install.packages lines. 
+
+```{r}
+# install.packages("WikidataQueryServiceR")
+library("WikidataQueryServiceR")
+```
+
+** 1. Get the data from WikiData.** 
+In this section I use the WikidataQueryServiceR package to obtain all alkines with known boiling points from WikiData. To do this, I first select all chemical compounds (Q11173), their labels and their boiling points (P2102). Next, I select all compounds with a label that is in English. Finally, I select the compounds whose label ends with "ane" to select the alkanes. This results in 91 alkanes and their boiling points. 
+
+```{r}
+data = query_wikidata('SELECT DISTINCT ?alkanes ?alkaneLabel ?boilingPoint      WHERE {
+    ?alkanes (wdt:P31|wdt:P279) wd:Q11173;
+      rdfs:label ?alkaneLabel;
+      wdt:P2102 ?boilingPoint.
+    FILTER((LANG(?alkaneLabel)) = "en")
+    FILTER(STRENDS(?alkaneLabel, "ane"))
+  }'
+)
+```
+
+
+
