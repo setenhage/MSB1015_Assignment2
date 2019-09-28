@@ -33,7 +33,7 @@ In this section I use the WikidataQueryServiceR package to obtain all simple alk
 
 ```{r}
 
-data = query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?smiles WHERE {   
+data_raw = query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?smiles WHERE {   
     ?comp wdt:P31/wdt:P279* wd:Q41581 ;
     p:P2102 [ps:P2102 ?bp ;           
             psv:P2102/wikibase:quantityUnit  
@@ -52,7 +52,7 @@ I get descriptors for all alanes from CDK based on their smiles. These descripto
 ```{r}
 
 #Reformatting of smiles into correct format for CDK. Kekulise checks for electrons, and prevents parsing of incorrect smiles. 
-parsed_smiles <- parse.smiles(data$smiles, kekulise=TRUE)
+parsed_smiles <- parse.smiles(data_raw$smiles, kekulise=TRUE)
 
 #Determine which descriptors to get. 
 descNames <- c(
@@ -70,26 +70,40 @@ descriptors <- eval.desc(parsed_smiles, descNames)
 ```{r}
 
 #Find all rownumbers of the values in Celcius. 
-celcius <-  which(grepl('degree Celsius', data$bpUnitLabel))
+celcius <-  which(grepl('degree Celsius', data_raw$bpUnitLabel))
 for (i in 1:length(celcius)) {
   #Convert the value to kelvin
-  data$bp[celcius[i]] <- data$bp[celcius[i]] + 273.15
+  data_raw$bp[celcius[i]] <- data_raw$bp[celcius[i]] + 273.15
   #Convert the label to kelvin. 
-  data$bpUnitLabel[celcius[i]] <- 'kelvin'
+  data_raw$bpUnitLabel[celcius[i]] <- 'kelvin'
 }
 
 #Find all rownumbers of the values in Fahrenheit. 
-fahrenheit <- which(grepl('degree Fahrenheit', data$bpUnitLabel))
+fahrenheit <- which(grepl('degree Fahrenheit', data_raw$bpUnitLabel))
 for (i in 1:length(fahrenheit)) {
   #Convert the value to kelvin
-  data$bp[fahrenheit[i]] <- (data$bp[fahrenheit[i]] + 459.67) * (5/9)
+  data_raw$bp[fahrenheit[i]] <- (data_raw$bp[fahrenheit[i]] + 459.67) * (5/9)
   #Convert the label to kelvin. 
-  data$bpUnitLabel[fahrenheit[i]] <- 'kelvin'
+  data_raw$bpUnitLabel[fahrenheit[i]] <- 'kelvin'
 }
 
 ```
 
-3b) To be able to test how well the model I train performs, it is necessary to keep a part of our data aside as testing data. In the following code you can easily change the size of the test data by adjusting percentage_test. 
+3b) Normalization of the data.  
+
+```{r} 
+#Normalization of data
+data <- data.frame(descriptors, data_raw$bp)
+
+#Devide every column by its maximum value. 
+for (i in 1:ncol(data)) {
+  data[,i] <- data[,i] * (1/max(data[,i]))
+}
+
+
+```
+
+3c) To be able to test how well the model I train performs, it is necessary to keep a part of our data aside as testing data. In the following code you can easily change the size of the test data by adjusting percentage_test. 
  
 ```{r}
 
@@ -98,9 +112,9 @@ percentage_test <- 0.25
 
 #Splitting data into a training and test set. 
 set.seed(50) 
-sample = sample.split(full_data, SplitRatio = percentage_test)
-train = subset(full_data, sample == FALSE)
-test  = subset(full_data, sample == TRUE)
+sample = sample.split(data, SplitRatio = percentage_test)
+train = subset(data, sample == FALSE)
+test  = subset(data, sample == TRUE)
 
 ```
 
@@ -110,10 +124,10 @@ The null model is the most simple model possible: the mean of the data. This mod
 ```{r}
 
 #Create null_model
-null_model <- mean(train$data.bp)
+null_model <- mean(train$data_raw.bp)
 
 #Get error of null model
-error_null_model <- rmse(test$data.bp, null_model)
+error_null_model <- rmse(test$data_raw.bp, null_model)
 
 ```
 
@@ -123,7 +137,7 @@ Here, I train the PLS model with the training data, and use the model to predict
 ```{r}
 
 #Training of the PLS model. 
-PLS_model <- plsr(data.bp ~ (apol + WPATH + WPOL), 
+PLS_model <- plsr(data_raw.bp ~ (apol + WPATH + WPOL), 
                   data = train, 
                   validation = "CV"
                   )
@@ -142,4 +156,6 @@ error <- RMSEP(PLS_model, newdata = test)
 ```{r} 
 
 #Plot the predicted data vs. the original data. 
-plot(test$data.bp, predicted.bp[,,3], xlim=c(250,1000), ylim=c(250,1000))
+plot(test$data_raw.bp, predicted.bp[,,3])
+
+```
