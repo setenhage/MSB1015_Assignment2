@@ -53,10 +53,15 @@ I get descriptors for all alanes from CDK based on their smiles. These descripto
 
 #Reformatting of smiles into correct format for CDK. Kekulise checks for electrons, and prevents parsing of incorrect smiles. 
 parsed_smiles <- parse.smiles(data_raw$smiles, kekulise=TRUE)
+
 #Determine which descriptors to get. 
 descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.APolDescriptor',
-'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor')
+'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.MDEDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.FMFDescriptor'
+)
+
 #Get descriptors
 descriptors <- eval.desc(parsed_smiles, descNames)
 
@@ -96,7 +101,7 @@ data <- data.frame(descriptors, data_raw$bp)
 percentage_test <- 0.25
 
 #Splitting data into a training and test set. 
-set.seed(50) 
+set.seed(101) 
 sample = sample.split(data, SplitRatio = percentage_test)
 train = subset(data, sample == FALSE)
 test  = subset(data, sample == TRUE)
@@ -122,7 +127,7 @@ Here, I train the PLS model with the training data, and use the model to predict
 ```{r}
 
 #Training of the PLS model. 
-PLS_model <- plsr(data_raw.bp ~ (apol + WPATH + WPOL), 
+PLS_model <- plsr(data_raw.bp ~  ., 
                   data = train, 
                   validation = "CV"
                   )
@@ -133,15 +138,18 @@ predicted.bp <- predict(PLS_model, test)
 #Calculate the error. 
 error <- RMSEP(PLS_model, newdata = test)
 
-
 ```
 
 **6. Visualization**
 
 ```{r} 
+#Plot the error vs. the number of components
+plot(error)
 
 #Plot the predicted data vs. the original data. 
-plot(test$data_raw.bp, predicted.bp[,,3], xlim=c(350,1000), ylim=c(350,1000))
-cor(predicted.bp[,,3], test$data_raw.bp)
+plot(test$data_raw.bp, predicted.bp[,,10], xlim=c(350,1000), ylim=c(350,1000))
+
+#Correlation between predicted and original test data. 
+corcoef <- cor(predicted.bp[,,10], test$data_raw.bp) 
 
 ```
