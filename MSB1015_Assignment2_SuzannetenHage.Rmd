@@ -9,25 +9,30 @@ output: html_notebook
 In this project I will train a Partial Least Square (PLS) algorithm to predict the bioling point of alkines from their structure. 
 
 **0. Load packages**
-If you haven't installed the packages on your computer yet, please uncomment the 
-install.packages lines. 
+If you haven't installed the packages on your computer yet, please uncomment the install.packages lines before running the code below. 
 
 ```{r}
+
 # install.packages("WikidataQueryServiceR")
 library("WikidataQueryServiceR")
 #install.packages('rJava')
 library('rJava')
 #install.packages('rcdk')
 library('rcdk')
+#install.packages('caTools')
+library('caTools')
 #install.packages('pls')
 library('pls')
+#install.packages('Metrics')
+library('Metrics')
 
 ```
 
 **1. Get the data from WikiData.** 
-In this section I use the WikidataQueryServiceR package to obtain all simple alkines with known boiling points from WikiData.
+In this section I use the WikidataQueryServiceR package to obtain all simple alkines with known boiling points from WikiData. I get their name, boiling point, boiling point unit and smiles. 
 
 ```{r}
+
 data = query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?smiles WHERE {   
     ?comp wdt:P31/wdt:P279* wd:Q41581 ;
     p:P2102 [ps:P2102 ?bp ;           
@@ -41,25 +46,29 @@ data = query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?smiles 
 
 ```
 
-**3.Quantify the alkane structures**
+**2. Get the descriptors of the alkane structures**
+I get descriptors for all alanes from CDK based on their smiles. These descriptors will be used later as predictors in the PLS model. 
 
 ```{r}
 
-#Get descriptors
+#Reformatting of smiles into correct format for CDK. Kekulise checks for electrons, and prevents parsing of incorrect smiles. 
 parsed_smiles <- parse.smiles(data$smiles, kekulise=TRUE)
 
+#Determine which descriptors to get. 
 descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.APolDescriptor',
-'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor'
-)
+'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor')
 
+#Get descriptors
 descriptors <- eval.desc(parsed_smiles, descNames)
+
 ```
 
-**4. Data pre-processing**
-Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
+**3. Data pre-processing**
+3a) Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
 
 ```{r}
+
 #Find all rownumbers of the values in Celcius. 
 celcius <-  which(grepl('degree Celsius', data$bpUnitLabel))
 for (i in 1:length(celcius)) {
@@ -79,3 +88,58 @@ for (i in 1:length(fahrenheit)) {
 }
 
 ```
+
+3b) To be able to test how well the model I train performs, it is necessary to keep a part of our data aside as testing data. In the following code you can easily change the size of the test data by adjusting percentage_test. 
+ 
+```{r}
+
+#Percentage of data to go into the test-set. 
+percentage_test <- 0.25
+
+#Splitting data into a training and test set. 
+set.seed(50) 
+sample = sample.split(full_data, SplitRatio = percentage_test)
+train = subset(full_data, sample == FALSE)
+test  = subset(full_data, sample == TRUE)
+
+```
+
+**4. Null model**
+The null model is the most simple model possible: the mean of the data. This model can be used as a reference to see whether the PLS model performs better. 
+
+```{r}
+
+#Create null_model
+null_model <- mean(train$data.bp)
+
+#Get error of null model
+error_null_model <- rmse(test$data.bp, null_model)
+
+```
+
+**5. Partial Least Squares**
+Here, I train the PLS model with the training data, and use the model to predict the boiling points of the test data. 
+
+```{r}
+
+#Training of the PLS model. 
+PLS_model <- plsr(data.bp ~ (apol + WPATH + WPOL), 
+                  data = train, 
+                  validation = "CV"
+                  )
+
+#Predict the boiling points of the test set. 
+predicted.bp <- predict(PLS_model, test)
+
+#Calculate the error. 
+error <- RMSEP(PLS_model, newdata = test)
+
+
+```
+
+**6. Visualization**
+
+```{r} 
+
+#Plot the predicted data vs. the original data. 
+plot(test$data.bp, predicted.bp[,,3], xlim=c(250,1000), ylim=c(250,1000))
