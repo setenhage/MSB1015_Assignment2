@@ -151,7 +151,27 @@ data_combined <- data_combined[ , -which(names(data_combined) %in% remove_column
 
 ```
 
-**3c)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as test set. Therefore, I split the data into a training and test set. I use 25% of my dataset as test set.
+**3c)** In order to check the quality of the data, it is necessary to make a few plots. First, we plot the boiling points, to see whether any of them have a very abnormal value, i.e. are an outlier. 
+
+```{r}
+
+#Plot the boiling points to check for outliers. 
+plot(data_combined$data_wikidata.bp, main = "Boiling point values", ylab = "boiling point (Kelvin)", cex.main = 0.8)
+
+```
+None of the values in figure 1 have a very abnormal value. Thus, there are no outliers that need to be removed. 
+
+Furthermore, one could expect that, in general, bigger alkanes have a higher boiling point. To test whether this relationship is also present in our dataset we plot the length of the smiles vs. the boiling points. 
+
+```{r}
+
+#Plot length of smiles vs. boiling points to check for a correlation
+plot(stri_length(data_wikidata$smiles), data_wikidata$bp, main = "Figure 2: Length of smiles vs. boiling point", xlab = "length of smiles", ylab = "boiling point (Kelvin)", cex.main = 0.8)
+
+```
+As expected, in figure 2 we do indeed see that there is a trend towards higher boiling points for bigger smiles. 
+
+**3d)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as test set. Therefore, I split the data into a training and test set. I use 25% of my dataset as test set.
 
 ```{r}
 
