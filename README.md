@@ -1,4 +1,4 @@
-## MSB1015_Assignment2
+## MSB1015 Assignment 2
 Welcome to the repository of MSB1015 Assignment 2! Here I keep track of my progress of MSB1015 2019 Assignment 2 at Maastricht University.
 
 ## Project Description
@@ -9,6 +9,9 @@ MSB1015_Assignment2_SuzannetenHage.rmd <- Code in Interactive R Markdown Noteboo
 
 ## Authors
 Suzanne ten Hage
+
+## Additional Information
+Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
 ## Sources
 1. Wiener H. Structural Determination of Paraffin Boiling Points. Journal of the
