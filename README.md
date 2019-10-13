@@ -7,7 +7,8 @@ Chemical properties, such as the boiling point, can be derived from the structur
 In this project I use a SPARQL query to obtain the smiles and boiling points of simple alkanes from WikiData (ref2). I use the smiles to get descriptors from the chemical development kit (CDK) database (ref3-6). These descriptors contain information on the structural properties of the alkanes (see section 2 for more details). Finally, I train a Partial Least Squares (PLS) model to predict these properties from the chemical properties of the compounds and plot the results. 
 
 ## Files
-MSB1015_Assignment2_SuzannetenHage.rmd <- Code in Interactive R Markdown Notebook. 
+MSB1015_Assignment2_SuzannetenHage.rmd <- Code that contains models to predict the boiling point from structural properties of alkanes. The code has been developed to explain the creation of the model and the results step-by-step. <br/>
+index.html <- html notebook that resulted from MSB1015_Assignment2_SuzannetenHage.rmd, in order to make a website using GitHub pages. 
 
 ## Installation
 **JAVA** <br/>
