@@ -13,7 +13,7 @@ In this project I use a SPARQL query to obtain the smiles and boiling points of 
 **0. Installation**
 The project requires several packages. The piece of code in this section checks automatically for missing packages and installs them. 
 
-The rJava package requires Java to be installed. The code has been developed using Java version 1.8.0_191. A tutorial on how to install this Java Version can be found here: https://downlinko.com/download-install-jdk-8-windows.html 
+The rJava package requires Java to be installed. The code has been developed using Java version 1.8.0_191. A tutorial on how to install this Java Version on windows can be found here: https://downlinko.com/download-install-jdk-8-windows.html 
 
 ```{r}
 #Required packages for this code. 
@@ -25,12 +25,12 @@ packages <- c("WikidataQueryServiceR",
               "Metrics"
               )
 
-#Installation of missing packages 
+#Installation of missing packages.
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
     install.packages(setdiff(packages, rownames(installed.packages()))) 
     }
 
-#Load packages
+#Load packages.
 library("WikidataQueryServiceR")
 library('rJava')
 library('rcdk')
@@ -69,7 +69,7 @@ Description of WikiData numbers:
 The SPARQL query can easily be changed to obtain different data. For example, one could get the smiles of alkynes instead of alkanes by changing Q41581 into Q159226. Look at https://www.wikidata.org/wiki/Wikidata:Main_Page to find the right numbers. 
 
 **2. Get the descriptors of the alkane structures**
-In this section, I use four descriptors for all alkanes from CDK. I can obtain the descriptors based on the alkane smiles. These descriptors will be used later as predictors in the PLS model. 
+In this section, I use four descriptors for all alkanes from CDK. I obtain the descriptors based on the alkane smiles. These descriptors are used later as predictors in the PLS model. 
 
 *APolDescriptor:*
 This describes the sum of the atomic polarizabilities. 
@@ -100,10 +100,11 @@ descriptor_names <- c(
 data_descriptors <- eval.desc(parsed_smiles, descriptor_names)
 
 #At the time of writing, this returns a dataframe of 23 variables describing 134 alkanes. 
+
 ```
 
 **3. Data pre-processing**
-Before we can use the descriptors and boiling points to train a PLS model, some data pre-processing needs to be done. 
+Before we use the descriptors and boiling points to train a PLS model, some data pre-processing needs to be done. 
 
 **3a)** Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
 
@@ -114,7 +115,7 @@ Before we can use the descriptors and boiling points to train a PLS model, some 
 celcius <-  which(grepl('degree Celsius', data_wikidata$bpUnitLabel))
 
 for (i in 1:length(celcius)) {
-   #Convert the value to kelvin
+   #Convert the value to kelvin.
    data_wikidata$bp[celcius[i]] <- data_wikidata$bp[celcius[i]] + 273.15
    #Convert the label to kelvin. 
    data_wikidata$bpUnitLabel[celcius[i]] <- 'kelvin'
@@ -125,7 +126,7 @@ for (i in 1:length(celcius)) {
 fahrenheit <- which(grepl('degree Fahrenheit',data_wikidata$bpUnitLabel))
 
 for (i in 1:length(fahrenheit)) {
-   #Convert the value to kelvin
+   #Convert the value to kelvin.
    data_wikidata$bp[fahrenheit[i]] <- (data_wikidata$bp[fahrenheit[i]] + 459.67) * (5/9)
    #Convert the label to kelvin. 
    data_wikidata$bpUnitLabel[fahrenheit[i]] <- 'kelvin'
@@ -133,7 +134,7 @@ for (i in 1:length(fahrenheit)) {
 
 ```
 
-**3b)** Combine the descriptors and boiling points in one dataset, so we can use this dataset for the PLS. I remove the columns with (almost) all zeros, because these descriptors do not have much predictive value. 
+**3b)** Next, I combine the descriptors and boiling points in one dataset, so we can use this dataset for the PLS. I remove the columns with (almost) all zeros, because these descriptors do not have much predictive value. 
 
 ```{r}
 
@@ -147,10 +148,11 @@ remove_columns <- c("MDEC.13", "MDEC.14", "MDEC.22", "MDEC.23", "MDEC.24", "MDEC
 data_combined <- data_combined[ , -which(names(data_combined) %in% remove_columns)]
 
 #At the time of writing, this returns a dataframe of 7 variables describing 134 alkanes. 
+
 ```
 
-**3c)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as testing data.
- 
+**3c)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as test set. Therefore, I split the data into a training and test set. I use 25% of my dataset as test set.
+
 ```{r}
 
 #Percentage of data to go into the test-set. Change this value to change the relative sizes of the training and test sets.
@@ -163,6 +165,7 @@ train = subset(data_combined, sample == FALSE)
 test  = subset(data_combined, sample == TRUE)
 
 #At the time of writing 134 alkanes are split into a training set of 115 alkanes and test set of 19 alkanes. 
+
 ```
 
 Note: The error of both the null and PLS models is dependent on the random splitting in training and test set. If you run the code, it is expected that the error differs from the error reported here. 
@@ -172,36 +175,35 @@ The null model is the most simple model possible; the mean of the data. This mod
 
 ```{r}
 
-#Create null_model
+#Create null_model.
 null_model <- mean(train$data_wikidata.bp)
 
-#Get error of null model
+#Calculate the error of the null model.
 error_null_model <- rmse(test$data_wikidata.bp, null_model)
 
-#Print the error
+#Print the error.
 print(paste0("The error of the Null model is ", error_null_model))
 
-#error: 250.68 degrees Kelvin. 
+#error: 250.68 degrees Kelvin.
 
 ```
 
 **5. Partial Least Squares**
-Here, I train the PLS model with the training data, and use the model to predict the boiling points of the test data. 
+Here, I train the PLS model with the training data, and use the model to predict the boiling points of the test data. If you are unfamiliar with PLS, this is video a good introduction: https://www.youtube.com/watch?v=AxmqUKYeD-U. In the model I use leave-one-out (LOO) validation, because my data set is small. 
 
 ```{r}
 
-#Training of the PLS model. 
-PLS_model <- plsr(data_raw.bp ~ ., 
+#Training of the PLS model, using leave-one-out validation.
+PLS_model <- plsr(data_wikidata.bp ~ ., 
                   data = train, 
-                  validation = "CV"
+                  validation = "LOO"
                   )
 
-#test.try <- test[,c(1:34)];
-#Predict the boiling points of the test set. 
-predicted.bp <- predict(PLS_model, test)
+#Calculate the error of the PLS model.
+error_PLS <- RMSEP(PLS_model, newdata = test)
 
-#Calculate the error. 
-error <- RMSEP(PLS_model, newdata = test)
+#Use the model to predict the boiling points of the test set.
+predicted_bp <- predict(PLS_model, test)
 
 ```
 
@@ -213,12 +215,15 @@ error <- RMSEP(PLS_model, newdata = test)
 plot(error)
 
 #Plot the predicted data vs. the original data. 
-plot(test$data_raw.bp, predicted.bp[,,3], xlim=c(300,1000), ylim=c(300,1000))
+plot(test$data_raw.bp, predicted_bp[,,3], xlim=c(300,1000), ylim=c(300,1000))
 
 plot(test$data_raw.bp, rep(null_model, length(test$data_raw.bp)))
 
 #Correlation between predicted and original test data. 
 corcoef <- cor(predicted.bp[,,3], test$data_raw.bp) 
+
+#Print the error
+print(paste0("The error of the PLS model is ", error_PLS))
 
 ```
 
