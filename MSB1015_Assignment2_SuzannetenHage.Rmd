@@ -1,21 +1,19 @@
 ---
 title: "MSB1015_Assignment 2"
-author: "Suzanne ten Hage"
-date: "13 october 2019"
+author: "Suzanne ten Hage - i6201596"
+date: "13 October 2019"
 output: html_notebook
 ---
 
-**Project Description**
+**Project Description** <br/>
 Chemical properties, such as the boiling point, can be derived from the structure of a chemical compound. In 1947, Harry Wiener already made a correlation model to link structural features to boiling points (ref1). The idea to use mathematical models to predict chemical properties from compound structures has been expaned since then. 
 
 In this project I use a SPARQL query to obtain the smiles and boiling points of simple alkanes from WikiData (ref2). I use the smiles to get descriptors from the chemical development kit (CDK) database (ref3-6). These descriptors contain information on the structural properties of the alkanes (see section 2 for more details). Finally, I train a Partial Least Squares (PLS) model to predict these properties from the chemical properties of the compounds and plot the results. 
 
-**0. Installation**
-The project requires several packages. The piece of code in this section checks automatically for missing packages and installs them. 
+**0. Installation** <br/>
+The project requires several packages. The piece of code in this section checks automatically for missing packages and installs them. The rJava package requires Java to be installed. The code has been developed using Java version 1.8.0_191. A tutorial on how to install this Java Version on windows can be found [here](https://downlinko.com/download-install-jdk-8-windows.html). 
 
-The rJava package requires Java to be installed. The code has been developed using Java version 1.8.0_191. A tutorial on how to install this Java Version on windows can be found here: https://downlinko.com/download-install-jdk-8-windows.html 
-
-```{r}
+```{r include = TRUE}
 #Required packages for this code. 
 packages <- c("WikidataQueryServiceR", 
               "rJava", 
@@ -28,7 +26,7 @@ packages <- c("WikidataQueryServiceR",
 
 #Installation of missing packages.
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-    install.packages(setdiff(packages, rownames(installed.packages()))) 
+     install.packages(setdiff(packages, rownames(installed.packages()))) 
     }
 
 #Load packages.
@@ -42,11 +40,10 @@ library('Metrics')
 
 
 ```
-
-**1. Get the data from WikiData.** 
+**1. Get the data from WikiData.** <br/>
 In this section I use the WikidataQueryServiceR package to run a SPARQL query that obtains all simple alkines with known boiling points and smiles from WikiData.
 
-```{r}
+```{r include = TRUE}
 
 #The function query_wikidata runs the SPARQL query to obtain data from the Wikidata database. This returns a dataframe containing the alkane names, boiling points, units and smiles. It also contains the wikidata-links for compounds and units. There are 134 alkanes at the time of writing. 
 
@@ -62,31 +59,32 @@ data_wikidata = query_wikidata('SELECT DISTINCT ?comp ?compLabel ?bp ?bpUnit ?bp
 )
 
 ```
-Description of WikiData numbers:
-* P31 = instance of
-* P279 = subclass of
-* Q41581 = alkane
-* P2102 = boiling point
-* P233 = canonical smiles
 
-The SPARQL query can easily be changed to obtain different data. For example, one could get the smiles of alkynes instead of alkanes by changing Q41581 into Q159226. Look at https://www.wikidata.org/wiki/Wikidata:Main_Page to find the right numbers. 
+Description of WikiData numbers: <br/>
+* P31 = instance of <br/>
+* P279 = subclass of <br/>
+* Q41581 = alkane <br/>
+* P2102 = boiling point <br/>
+* P233 = canonical smiles <br/>
 
-**2. Get the descriptors of the alkane structures**
+The SPARQL query can easily be changed to obtain different data. For example, one could get the smiles of alkynes instead of alkanes by changing Q41581 into Q159226. The numbers can be found [here](https://www.wikidata.org/wiki/Wikidata:Main_Page). 
+
+**2. Get the descriptors of the alkane structures** <br/>
 In this section, I use four descriptors for all alkanes from CDK. I obtain the descriptors based on the alkane smiles. These descriptors are used later as predictors in the PLS model. 
 
-*APolDescriptor:*
+*APolDescriptor:* <br/>
 This describes the sum of the atomic polarizabilities. 
 
-*WienerNumbersDescriptor:*
+*WienerNumbersDescriptor:* <br/>
 This gives the Wiener numbers (see ref1). It returns the Wiener Path Number and the Wiener Polarity Number. 
 
-*MDEDescriptor:*
+*MDEDescriptor:* <br/>
 Returns the Molecular Distance Edge. 
 
-*FragmentComplexityDescriptor:*
+*FragmentComplexityDescriptor:* <br/>
 Returns the complexity of a system. 
 
-```{r}
+```{r include = TRUE}
 
 #Reformatting of smiles into correct format for CDK. Kekulise checks for electrons, and prevents parsing of incorrect smiles. 
 parsed_smiles <- parse.smiles(data_wikidata$smiles, kekulise=TRUE)
@@ -106,12 +104,12 @@ data_descriptors <- eval.desc(parsed_smiles, descriptor_names)
 
 ```
 
-**3. Data pre-processing**
+**3. Data pre-processing** <br/>
 Before we use the descriptors and boiling points to train a PLS model, some data pre-processing needs to be done. 
 
 **3a)** Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
 
-```{r}
+```{r include = TRUE}
 
 ##CELCIUS -> KELVIN
 #Find all rownumbers of the values in Celcius. 
@@ -139,13 +137,18 @@ for (i in 1:length(fahrenheit)) {
 
 **3b)** Next, I combine the descriptors and boiling points in one dataset, so we can use this dataset for the PLS. I remove the columns with (almost) all zeros, because these descriptors do not have much predictive value. 
 
-```{r}
+```{r include = TRUE}
 
 #Fuse the boiling points from data_wikidata and data_descriptors into one dataset. 
 data_combined <- data.frame(data_descriptors, data_wikidata$bp)
 
 #Define which columns to remove. To include one of these columns as a predictor, remove the column here.  
-remove_columns <- c("MDEC.13", "MDEC.14", "MDEC.22", "MDEC.23", "MDEC.24", "MDEC.33", "MDEC.34", "MDEC.44", "MDEO.11", "MDEO.12", "MDEO.22", "MDEN.11", "MDEN.12", "MDEN.13", "MDEN.22", "MDEN.23", "MDEN.33")
+remove_columns <- c("MDEC.13", "MDEC.14", "MDEC.22", "MDEC.23", 
+                     "MDEC.24", "MDEC.33", "MDEC.34", "MDEC.44", 
+                     "MDEO.11", "MDEO.12", "MDEO.22", "MDEN.11", 
+                     "MDEN.12", "MDEN.13", "MDEN.22", "MDEN.23", 
+                     "MDEN.33"
+                    )
 
 #Remove all chosen columns from the dataset.
 data_combined <- data_combined[ , -which(names(data_combined) %in% remove_columns)]
@@ -156,27 +159,36 @@ data_combined <- data_combined[ , -which(names(data_combined) %in% remove_column
 
 **3c)** In order to check the quality of the data, it is necessary to make a few plots. First, we plot the boiling points, to see whether any of them have a very abnormal value, i.e. are an outlier. 
 
-```{r}
+```{r include = TRUE}
 
 #Plot the boiling points to check for outliers. 
-plot(data_combined$data_wikidata.bp, main = "Boiling point values", ylab = "boiling point (Kelvin)", cex.main = 0.8)
+plot(data_combined$data_wikidata.bp, 
+      main = "Boiling point values", 
+      ylab = "boiling point (Kelvin)", 
+      cex.main = 0.8
+     )
 
 ```
-None of the values in figure 1 have a very abnormal value. Thus, there are no outliers that need to be removed. 
 
-Furthermore, one could expect that, in general, bigger alkanes have a higher boiling point. To test whether this relationship is also present in our dataset we plot the length of the smiles vs. the boiling points. 
+None of the values in figure 1 have a very abnormal value. Thus, there are no outliers that need to be removed. Furthermore, one could expect that, in general, bigger alkanes have a higher boiling point. To test whether this relationship is also present in our dataset we plot the length of the smiles vs. the boiling points. 
 
-```{r}
+```{r include = TRUE}
 
 #Plot length of smiles vs. boiling points to check for a correlation
-plot(stri_length(data_wikidata$smiles), data_wikidata$bp, main = "Figure 2: Length of smiles vs. boiling point", xlab = "length of smiles", ylab = "boiling point (Kelvin)", cex.main = 0.8)
+plot(stri_length(data_wikidata$smiles), 
+      data_wikidata$bp, 
+      main = "Figure 2: Length of smiles vs. boiling point", 
+      xlab = "length of smiles", 
+      ylab = "boiling point (Kelvin)", 
+      cex.main = 0.8
+     )
 
 ```
 As expected, in figure 2 we do indeed see that there is a trend towards higher boiling points for bigger smiles. 
 
 **3d)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as test set. Therefore, I split the data into a training and test set. I use 25% of my dataset as test set.
 
-```{r}
+```{r include = TRUE}
 
 #Percentage of data to go into the test-set. Change this value to change the relative sizes of the training and test sets.
 percentage_test <- 0.25
@@ -193,10 +205,10 @@ test  = subset(data_combined, sample == TRUE)
 
 Note: The error of both the null and PLS models is dependent on the random splitting in training and test set. If you run the code, it is expected that the error differs from the error reported here. 
 
-**4. Null model**
+**4. Null model** <br/>
 The null model is the most simple model possible; the mean of the data. This model can be used as a reference to see whether the PLS model performs better. 
 
-```{r}
+```{r include = TRUE}
 
 #Create null_model.
 null_model <- mean(train$data_wikidata.bp)
@@ -207,19 +219,18 @@ error_null_model <- rmse(test$data_wikidata.bp, null_model)
 #Print the error.
 print(paste0("The error of the Null model is ", error_null_model))
 
-#error: 250.68 degrees Kelvin.
-
 ```
 
-**5. Partial Least Squares**
-Here, I train the PLS model with the training data, and use the model to predict the boiling points of the test data. If you are unfamiliar with PLS, this is video a good introduction: https://www.youtube.com/watch?v=AxmqUKYeD-U. In the model I use leave-one-out (LOO) validation, because my data set is small. 
+**5. Partial Least Squares** <br/>
+Here, I train the PLS model with the training data, and use the model to predict the boiling points of the test data. If you are unfamiliar with PLS, this is [video](https://www.youtube.com/watch?v=AxmqUKYeD-U) a good introduction. In the model I use leave-one-out (LOO) validation, because my data set is small. 
 
-```{r}
+
+```{r include = TRUE}
 
 #Training of the PLS model, using leave-one-out validation.
 PLS_model <- plsr(data_wikidata.bp ~ ., 
-                  data = train, 
-                  validation = "LOO"
+                   data = train, 
+                   validation = "LOO"
                   )
 
 #Calculate the error of the PLS model.
@@ -236,69 +247,98 @@ RSMEP will calculate the error for each model built by plsr and therefore, error
 
 The function predict will predict the boiling points based on each mode in PLS_model.  
 
-**6. Visualization**
+
+**6. Results** <br/>
 **6a)** In order to identify the model with the best number of components, it is needed to plot the error vs. the number of components. 
 
-```{r} 
+```{r include = TRUE} 
 
 #Plot the error vs. the number of PLS components
-plot(error_PLS, main = "Figure 3: Error vs. number of components", xlab= "number of PLS components", ylab = "Error (Kelvin)", cex.main = 0.8)
+plot(error_PLS, 
+      main = "Figure 3: Error vs. number of components", 
+      xlab= "number of PLS components", 
+      ylab = "Error (Kelvin)", 
+      cex.main = 0.8
+     )
 
 ```
 
-*Conclusion:* From figure 3 we see can conclude that the error decreases with adding more components untill we have 3 PLS components. From there, adding more components doesn't decrease the error further. Therefore, from here on I use the PLS model with 3 components. The error is much lower than the error of the null model, indicating the PLS model performs better than the null model. 
+*Conclusion:* <br/> 
+From figure 3 we see can conclude that the error decreases with adding more components untill we have 3 PLS components. From there, adding more components doesn't decrease the error further. Therefore, from here on I use the PLS model with 3 components. The error is much lower than the error of the null model, indicating the PLS model performs better than the null model. 
 
 **6b)** Using this PLS model with 3 components, I visualize how well it can predict boiling points based on the descriptors (described in section 2). To do this, I plot the predicted boiling points vs. the actual boiling points. If the prediction is perfect, we'd expect all the points to line up in a perfectly linear correlation.  
 
-```{r}
+```{r include = TRUE, message = FALSE, warning = FALSE}
 
 #Plot the predicted data vs. the original data. 
-plot(test$data_wikidata.bp, predicted_bp[,,3], xlim=c(300,1000), ylim=c(300,1000), main = "Figure 4: Predicted boiling points vs. measured boiling points", cex.main = 0.8, xlab = "measured boiling points (Kelvin)", ylab = "predicted boiling points (Kelvin)")
-lines(test$data_wikidata.bp, rep(null_model, length(test$data_wikidata.bp)), col = "red")
-lines(test$data_wikidata.bp, test$data_wikidata.bp, col = "green")
-legend("topleft", c("Null model", "Perfect model", "PLS model"), col = c("red", "green", "black"), pch = c(16), bty = 'n')
+plot(test$data_wikidata.bp, 
+      predicted_bp[,,3], 
+      xlim=c(300,1000), 
+      ylim=c(300,1000), 
+      main = "Figure 4: Predicted boiling points vs. measured boiling points", 
+      cex.main = 0.8, 
+      xlab = "measured boiling points (Kelvin)", 
+      ylab = "predicted boiling points (Kelvin)"
+     )
+#Add null model to the plot
+lines(test$data_wikidata.bp, 
+       rep(null_model, 
+           length(test$data_wikidata.bp)
+          ), 
+       col = "red"
+      )
+#Add the perfect prediction to the plot
+lines(test$data_wikidata.bp, 
+       test$data_wikidata.bp, 
+       col = "green"
+      )
+#Add legend
+legend("topleft", 
+       c("Null model", "Perfect model", "PLS model"), 
+       col = c("red", "green", "black"), 
+       pch = c(16), 
+       bty = 'n'
+      )
 
 ``` 
 
-*Conclusion*: In figure 4, we see that the PLS model (in black) performs much better in predicting the boiling points than the null model (in red). The PLS model comes quite close to the perfect prediction model, shown in green.  
+*Conclusion:* <br/>
+In figure 4, we see that the PLS model (in black) performs much better in predicting the boiling points than the null model (in red). The PLS model comes quite close to the perfect prediction model, shown in green.  
 
-**7. References**
-ref1: Wiener H. Structural Determination of Paraffin Boiling Points. Journal of the American Chemical Society. 1947 Jan;69(1):17–20.
-ref2: https://www.wikidata.org/wiki/Wikidata:Main_Page (12-10-2019)
-ref3: Willighagen et al. The Chemistry Development Kit (CDK) v2.0: atom typing, depiction, molecular formulas, and substructure searching. J. Cheminform. 2017; 9(3), doi:10.1186/s13321-017-0220-4
-ref4: May and Steinbeck. Efficient ring perception for the Chemistry Development Kit. J. Cheminform. 2014, doi:10.1186/1758-2946-6-3
-ref5: Steinbeck et al. Recent Developments of the Chemistry Development Kit (CDK) - An Open-Source Java Library for Chemo- and Bioinformatics. Curr. Pharm. Des. 2006; 12(17):2111-2120, doi:10.2174/138161206777585274
-ref6: Steinbeck et al. The Chemistry Development Kit (CDK): An Open-Source Java Library for Chemo- and Bioinformatics. J. Chem. Inf. Comput. Sci. 2003 Mar-Apr; 43(2):493-500, doi:10.1021/ci025584y
+**7. References** <br/>
+ref1: Wiener H. Structural Determination of Paraffin Boiling Points. Journal of the American Chemical Society. 1947 Jan;69(1):17–20. <br/>
+ref2: https://www.wikidata.org/wiki/Wikidata:Main_Page (12-10-2019) <br/>
+ref3: Willighagen et al. The Chemistry Development Kit (CDK) v2.0: atom typing, depiction, molecular formulas, and substructure searching. J. Cheminform. 2017; 9(3), doi:10.1186/s13321-017-0220-4 <br/>
+ref4: May and Steinbeck. Efficient ring perception for the Chemistry Development Kit. J. Cheminform. 2014, doi:10.1186/1758-2946-6-3 <br/>
+ref5: Steinbeck et al. Recent Developments of the Chemistry Development Kit (CDK) - An Open-Source Java Library for Chemo- and Bioinformatics. Curr. Pharm. Des. 2006; 12(17):2111-2120, doi:10.2174/138161206777585274 <br/>
+ref6: Steinbeck et al. The Chemistry Development Kit (CDK): An Open-Source Java Library for Chemo- and Bioinformatics. J. Chem. Inf. Comput. Sci. 2003 Mar-Apr; 43(2):493-500, doi:10.1021/ci025584y <br/>
 
-*Package references*
-* WikidataQuerySerivceR
+*Package references* <br/>
+* [WikidataQuerySerivceR](https://CRAN.R-project.org/package=WikidataQueryServiceR) <br/>
   Mikhail Popov (2017). WikidataQueryServiceR: API Client Library for
-  'Wikidata Query Service'. R package version 0.1.1.
-  https://CRAN.R-project.org/package=WikidataQueryServiceR
+  'Wikidata Query Service'. R package version 0.1.1. <br/>
 
-*rJava
+*[rJava](https://CRAN.R-project.org/package=rJava) <br/>
   Simon Urbanek (2019). rJava: Low-Level R to Java Interface. R package
-  version 0.9-11. https://CRAN.R-project.org/package=rJava
+  version 0.9-11.  <br/>
   
-*rcdk
+*[rcdk](https://cran.r-project.org/web/packages/rcdk/index.html) <br/>
   Guha, R. (2007). 'Chemical Informatics Functionality in R'. Journal
-  of Statistical Software 6(18)
+  of Statistical Software 6(18) <br/>
 
-*stringi
+*[stringi](http://www.gagolewski.com/software/stringi/.) <br/>
   Gagolewski M. and others (2019). R package stringi: Character string
-  processing facilities. http://www.gagolewski.com/software/stringi/.
+  processing facilities.
 
-*caTools
+*[caTools](https://CRAN.R-project.org/package=caTools) <br/>
   Jarek Tuszynski (2019). caTools: Tools: moving window statistics,
-  GIF, Base64, ROC AUC, etc.. R package version 1.17.1.2.
-  https://CRAN.R-project.org/package=caTools
+  GIF, Base64, ROC AUC, etc.. R package version 1.17.1.2 <br/>
   
-*pls
+*[pls](https://CRAN.R-project.org/package=pls) <br/>
   Bjørn-Helge Mevik, Ron Wehrens and Kristian Hovde Liland (2019). pls:
   Partial Least Squares and Principal Component Regression. R package
-  version 2.7-1. https://CRAN.R-project.org/package=pls
+  version 2.7-1.  <br/>
   
-*Metrics
+*[Metrics](https://CRAN.R-project.org/package=Metrics) <br/>
   Ben Hamner and Michael Frasco (2018). Metrics: Evaluation Metrics for
-  Machine Learning. R package version 0.1.4.
-  https://CRAN.R-project.org/package=Metrics
+  Machine Learning. R package version 0.1.4. <br/>
