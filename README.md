@@ -1,5 +1,5 @@
 ## MSB1015 Assignment 2
-Welcome to the repository of MSB1015 Assignment 2! Here I keep track of my progress of MSB1015 2019 Assignment 2 at Maastricht University.
+Welcome to the repository of MSB1015 Assignment 2! Here I keep track of my progress of MSB1015 2019 Assignment 2 at Maastricht University. The result of this assignment can be seen [here](https://setenhage.github.io/MSB1015_Assignment2/)
 
 ## Project Description
 Chemical properties, such as the boiling point, can be derived from the structure of a chemical compound. In 1947, Harry Wiener already made a correlation model to link structural features to boiling points (ref1). The idea to use mathematical models to predict chemical properties from compound structures has been expaned since then. 
