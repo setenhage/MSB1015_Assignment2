@@ -29,11 +29,11 @@ Suzanne ten Hage
 ## Additional Information <br/>
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
-## Sources
+## References
 1. Wiener H. Structural Determination of Paraffin Boiling Points. Journal of the
 American Chemical Society. 1947 Jan;69(1):17–20.
-ref2: https://www.wikidata.org/wiki/Wikidata:Main_Page (12-10-2019)
-ref3: Willighagen et al. The Chemistry Development Kit (CDK) v2.0: atom typing, depiction, molecular formulas, and substructure searching. J. Cheminform. 2017; 9(3), doi:10.1186/s13321-017-0220-4
-ref4: May and Steinbeck. Efficient ring perception for the Chemistry Development Kit. J. Cheminform. 2014, doi:10.1186/1758-2946-6-3
-ref5: Steinbeck et al. Recent Developments of the Chemistry Development Kit (CDK) - An Open-Source Java Library for Chemo- and Bioinformatics. Curr. Pharm. Des. 2006; 12(17):2111-2120, doi:10.2174/138161206777585274
-ref6: Steinbeck et al. The Chemistry Development Kit (CDK): An Open-Source Java Library for Chemo- and Bioinformatics. J. Chem. Inf. Comput. Sci. 2003 Mar-Apr; 43(2):493-500, doi:10.1021/ci025584y
+2. https://www.wikidata.org/wiki/Wikidata:Main_Page (12-10-2019)
+3. Willighagen et al. The Chemistry Development Kit (CDK) v2.0: atom typing, depiction, molecular formulas, and substructure searching. J. Cheminform. 2017; 9(3), doi:10.1186/s13321-017-0220-4
+4.  May and Steinbeck. Efficient ring perception for the Chemistry Development Kit. J. Cheminform. 2014, doi:10.1186/1758-2946-6-3
+5. Steinbeck et al. Recent Developments of the Chemistry Development Kit (CDK) - An Open-Source Java Library for Chemo- and Bioinformatics. Curr. Pharm. Des. 2006; 12(17):2111-2120, doi:10.2174/138161206777585274
+6. Steinbeck et al. The Chemistry Development Kit (CDK): An Open-Source Java Library for Chemo- and Bioinformatics. J. Chem. Inf. Comput. Sci. 2003 Mar-Apr; 43(2):493-500, doi:10.1021/ci025584y
