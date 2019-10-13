@@ -20,6 +20,7 @@ The rJava package requires Java to be installed. The code has been developed usi
 packages <- c("WikidataQueryServiceR", 
               "rJava", 
               "rcdk", 
+              "stringi",
               "caTools",
               "pls", 
               "Metrics"
@@ -34,9 +35,11 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 library("WikidataQueryServiceR")
 library('rJava')
 library('rcdk')
+library('stringi')
 library('caTools')
 library('pls')
 library('Metrics')
+
 
 ```
 
@@ -179,7 +182,7 @@ As expected, in figure 2 we do indeed see that there is a trend towards higher b
 percentage_test <- 0.25
 
 #Split the data into a training and test set. 
-set.seed(101) 
+set.seed(88) 
 sample = sample.split(data_combined, SplitRatio = percentage_test)
 train = subset(data_combined, sample == FALSE)
 test  = subset(data_combined, sample == TRUE)
@@ -234,24 +237,30 @@ RSMEP will calculate the error for each model built by plsr and therefore, error
 The function predict will predict the boiling points based on each mode in PLS_model.  
 
 **6. Visualization**
+**6a)** In order to identify the model with the best number of components, it is needed to plot the error vs. the number of components. 
 
 ```{r} 
 
-#Plot the error vs. the number of components
-plot(error)
-
-#Plot the predicted data vs. the original data. 
-plot(test$data_raw.bp, predicted_bp[,,3], xlim=c(300,1000), ylim=c(300,1000))
-
-plot(test$data_raw.bp, rep(null_model, length(test$data_raw.bp)))
-
-#Correlation between predicted and original test data. 
-corcoef <- cor(predicted.bp[,,3], test$data_raw.bp) 
-
-#Print the error
-print(paste0("The error of the PLS model is ", error_PLS))
+#Plot the error vs. the number of PLS components
+plot(error_PLS, main = "Figure 3: Error vs. number of components", xlab= "number of PLS components", ylab = "Error (Kelvin)", cex.main = 0.8)
 
 ```
+
+*Conclusion:* From figure 3 we see can conclude that the error decreases with adding more components untill we have 3 PLS components. From there, adding more components doesn't decrease the error further. Therefore, from here on I use the PLS model with 3 components. The error is much lower than the error of the null model, indicating the PLS model performs better than the null model. 
+
+**6b)** Using this PLS model with 3 components, I visualize how well it can predict boiling points based on the descriptors (described in section 2). To do this, I plot the predicted boiling points vs. the actual boiling points. If the prediction is perfect, we'd expect all the points to line up in a perfectly linear correlation.  
+
+```{r}
+
+#Plot the predicted data vs. the original data. 
+plot(test$data_wikidata.bp, predicted_bp[,,3], xlim=c(300,1000), ylim=c(300,1000), main = "Figure 4: Predicted boiling points vs. measured boiling points", cex.main = 0.8, xlab = "measured boiling points (Kelvin)", ylab = "predicted boiling points (Kelvin)")
+lines(test$data_wikidata.bp, rep(null_model, length(test$data_wikidata.bp)), col = "red")
+lines(test$data_wikidata.bp, test$data_wikidata.bp, col = "green")
+legend("topleft", c("Null model", "Perfect model", "PLS model"), col = c("red", "green", "black"), pch = c(16), bty = 'n')
+
+``` 
+
+*Conclusion*: In figure 4, we see that the PLS model (in black) performs much better in predicting the boiling points than the null model (in red). The PLS model comes quite close to the perfect prediction model, shown in green.  
 
 **7. References**
 ref1: Wiener H. Structural Determination of Paraffin Boiling Points. Journal of the American Chemical Society. 1947 Jan;69(1):17–20.
