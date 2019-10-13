@@ -165,16 +165,23 @@ test  = subset(data_combined, sample == TRUE)
 #At the time of writing 134 alkanes are split into a training set of 115 alkanes and test set of 19 alkanes. 
 ```
 
+Note: The error of both the null and PLS models is dependent on the random splitting in training and test set. If you run the code, it is expected that the error differs from the error reported here. 
+
 **4. Null model**
-The null model is the most simple model possible: the mean of the data. This model can be used as a reference to see whether the PLS model performs better. 
+The null model is the most simple model possible; the mean of the data. This model can be used as a reference to see whether the PLS model performs better. 
 
 ```{r}
 
 #Create null_model
-null_model <- mean(train$data_raw.bp)
+null_model <- mean(train$data_wikidata.bp)
 
 #Get error of null model
-error_null_model <- rmse(test$data_raw.bp, null_model)
+error_null_model <- rmse(test$data_wikidata.bp, null_model)
+
+#Print the error
+print(paste0("The error of the Null model is ", error_null_model))
+
+#error: 250.68 degrees Kelvin. 
 
 ```
 
