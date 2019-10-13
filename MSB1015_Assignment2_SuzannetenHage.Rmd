@@ -8,7 +8,7 @@ output: html_notebook
 **Project Description**
 Chemical properties, such as the boiling point, can be derived from the structure of a chemical compound. In 1947, Harry Wiener already made a correlation model to link structural features to boiling points (ref1). The idea to use mathematical models to predict chemical properties from compound structures has been expaned since then. 
 
-In this project I use a SPARQL query to obtain the smiles and boiling points of simple alkanes from WikiData (ref2). I use the smiles to get descriptors from the CDK database (ref3-6). These descriptors contain information on the structural properties of the alkanes (see section 2 for more details). Finally, I train a Partial Least Squares (PLS) model to predict these properties from the chemical properties of the compounds and plot the results. 
+In this project I use a SPARQL query to obtain the smiles and boiling points of simple alkanes from WikiData (ref2). I use the smiles to get descriptors from the chemical development kit (CDK) database (ref3-6). These descriptors contain information on the structural properties of the alkanes (see section 2 for more details). Finally, I train a Partial Least Squares (PLS) model to predict these properties from the chemical properties of the compounds and plot the results. 
 
 **0. Installation**
 The project requires several packages. The piece of code in this section checks automatically for missing packages and installs them. 
@@ -69,14 +69,26 @@ Description of WikiData numbers:
 The SPARQL query can easily be changed to obtain different data. For example, one could get the smiles of alkynes instead of alkanes by changing Q41581 into Q159226. Look at https://www.wikidata.org/wiki/Wikidata:Main_Page to find the right numbers. 
 
 **2. Get the descriptors of the alkane structures**
-In this section, I get descriptors for all alkanes from CDK based on their smiles. These descriptors will be used later as predictors in the PLS model. 
+In this section, I use four descriptors for all alkanes from CDK. I can obtain the descriptors based on the alkane smiles. These descriptors will be used later as predictors in the PLS model. 
+
+*APolDescriptor:*
+This describes the sum of the atomic polarizabilities. 
+
+*WienerNumbersDescriptor:*
+This gives the Wiener numbers (see ref1). It returns the Wiener Path Number and the Wiener Polarity Number. 
+
+*MDEDescriptor:*
+Returns the Molecular Distance Edge. 
+
+*FragmentComplexityDescriptor:*
+Returns the complexity of a system. 
 
 ```{r}
 
 #Reformatting of smiles into correct format for CDK. Kekulise checks for electrons, and prevents parsing of incorrect smiles. 
 parsed_smiles <- parse.smiles(data_wikidata$smiles, kekulise=TRUE)
 
-#Determine which descriptors to get. 
+#Determine which descriptors are of interest. To add/remove descriptors, change this vector to include the desired descriptors. 
 descriptor_names <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.APolDescriptor',
 'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor',
@@ -84,9 +96,10 @@ descriptor_names <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor'
 )
 
-#Get descriptors
+#Get descriptor values form the CDK database. 
 data_descriptors <- eval.desc(parsed_smiles, descriptor_names)
 
+#At the time of writing, this returns a dataframe of 23 variables describing 134 alkanes. 
 ```
 
 **3. Data pre-processing**
