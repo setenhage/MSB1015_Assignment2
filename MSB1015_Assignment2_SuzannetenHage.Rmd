@@ -270,3 +270,35 @@ ref4: May and Steinbeck. Efficient ring perception for the Chemistry Development
 ref5: Steinbeck et al. Recent Developments of the Chemistry Development Kit (CDK) - An Open-Source Java Library for Chemo- and Bioinformatics. Curr. Pharm. Des. 2006; 12(17):2111-2120, doi:10.2174/138161206777585274
 ref6: Steinbeck et al. The Chemistry Development Kit (CDK): An Open-Source Java Library for Chemo- and Bioinformatics. J. Chem. Inf. Comput. Sci. 2003 Mar-Apr; 43(2):493-500, doi:10.1021/ci025584y
 
+*Package references*
+* WikidataQuerySerivceR
+  Mikhail Popov (2017). WikidataQueryServiceR: API Client Library for
+  'Wikidata Query Service'. R package version 0.1.1.
+  https://CRAN.R-project.org/package=WikidataQueryServiceR
+
+*rJava
+  Simon Urbanek (2019). rJava: Low-Level R to Java Interface. R package
+  version 0.9-11. https://CRAN.R-project.org/package=rJava
+  
+*rcdk
+  Guha, R. (2007). 'Chemical Informatics Functionality in R'. Journal
+  of Statistical Software 6(18)
+
+*stringi
+  Gagolewski M. and others (2019). R package stringi: Character string
+  processing facilities. http://www.gagolewski.com/software/stringi/.
+
+*caTools
+  Jarek Tuszynski (2019). caTools: Tools: moving window statistics,
+  GIF, Base64, ROC AUC, etc.. R package version 1.17.1.2.
+  https://CRAN.R-project.org/package=caTools
+  
+*pls
+  Bjørn-Helge Mevik, Ron Wehrens and Kristian Hovde Liland (2019). pls:
+  Partial Least Squares and Principal Component Regression. R package
+  version 2.7-1. https://CRAN.R-project.org/package=pls
+  
+*Metrics
+  Ben Hamner and Michael Frasco (2018). Metrics: Evaluation Metrics for
+  Machine Learning. R package version 0.1.4.
+  https://CRAN.R-project.org/package=Metrics
