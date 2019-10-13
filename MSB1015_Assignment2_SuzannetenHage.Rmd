@@ -227,6 +227,12 @@ predicted_bp <- predict(PLS_model, test)
 
 ```
 
+The plsr function trains several models with different numbers of components. As plsr is used here, it determines the number of components by itself (and will generally use 1 up to (descriptors - 1) components). It also possible to fix the number of components by using the ncomp = value argument. 
+
+RSMEP will calculate the error for each model built by plsr and therefore, error_PLS will contain a vector containing the error for each number of components (see section 6 for visualization of this).
+
+The function predict will predict the boiling points based on each mode in PLS_model.  
+
 **6. Visualization**
 
 ```{r} 
