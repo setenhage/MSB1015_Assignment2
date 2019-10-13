@@ -10,23 +10,23 @@ In this project I use a SPARQL query to obtain the smiles and boiling points of 
 MSB1015_Assignment2_SuzannetenHage.rmd <- Code in Interactive R Markdown Notebook. 
 
 ## Installation
-**JAVA**
+**JAVA** <br/>
 The rJava package requires Java to be installed. The code has been developed using Java version 1.8.0_191. A tutorial on how to install this Java Version on windows can be found [here](https://downlinko.com/download-install-jdk-8-windows.html). 
 
-**Required R packages:**
-The project requires several packages. The code checks automatically for missing packages and installs them. The required packages are: 
-..* WikidataQuery 
-..* rJava
-..* rcdk
-..* stringi
-..* caTools
-..* pls
-..* Metrics
+**Required R packages:** <br/>
+The project requires several packages. The code checks automatically for missing packages and installs them. The required packages are: <br/> 
+* WikidataQuery 
+* rJava
+* rcdk
+* stringi
+* caTools
+* pls
+* Metrics
 
 ## Authors
 Suzanne ten Hage
 
-## Additional Information
+## Additional Information <br/>
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
 ## Sources
