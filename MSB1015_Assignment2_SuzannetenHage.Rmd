@@ -13,7 +13,7 @@ In this project I use a SPARQL query to obtain the smiles and boiling points of 
 **0. Installation** <br/>
 The project requires several packages. The piece of code in this section checks automatically for missing packages and installs them. The rJava package requires Java to be installed. The code has been developed using Java version 1.8.0_191. A tutorial on how to install this Java Version on windows can be found [here](https://downlinko.com/download-install-jdk-8-windows.html). 
 
-```{r include = TRUE}
+```{r include = TRUE, message = FALSE, warning = FALSE}
 #Required packages for this code. 
 packages <- c("WikidataQueryServiceR", 
               "rJava", 
@@ -29,6 +29,7 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
      install.packages(setdiff(packages, rownames(installed.packages()))) 
     }
 
+
 #Load packages.
 library("WikidataQueryServiceR")
 library('rJava')
@@ -38,12 +39,12 @@ library('caTools')
 library('pls')
 library('Metrics')
 
-
 ```
+
 **1. Get the data from WikiData.** <br/>
 In this section I use the WikidataQueryServiceR package to run a SPARQL query that obtains all simple alkines with known boiling points and smiles from WikiData.
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #The function query_wikidata runs the SPARQL query to obtain data from the Wikidata database. This returns a dataframe containing the alkane names, boiling points, units and smiles. It also contains the wikidata-links for compounds and units. There are 134 alkanes at the time of writing. 
 
@@ -84,7 +85,7 @@ Returns the Molecular Distance Edge.
 *FragmentComplexityDescriptor:* <br/>
 Returns the complexity of a system. 
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Reformatting of smiles into correct format for CDK. Kekulise checks for electrons, and prevents parsing of incorrect smiles. 
 parsed_smiles <- parse.smiles(data_wikidata$smiles, kekulise=TRUE)
@@ -109,7 +110,7 @@ Before we use the descriptors and boiling points to train a PLS model, some data
 
 **3a)** Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 ##CELCIUS -> KELVIN
 #Find all rownumbers of the values in Celcius. 
@@ -137,7 +138,7 @@ for (i in 1:length(fahrenheit)) {
 
 **3b)** Next, I combine the descriptors and boiling points in one dataset, so we can use this dataset for the PLS. I remove the columns with (almost) all zeros, because these descriptors do not have much predictive value. 
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Fuse the boiling points from data_wikidata and data_descriptors into one dataset. 
 data_combined <- data.frame(data_descriptors, data_wikidata$bp)
@@ -159,7 +160,7 @@ data_combined <- data_combined[ , -which(names(data_combined) %in% remove_column
 
 **3c)** In order to check the quality of the data, it is necessary to make a few plots. First, we plot the boiling points, to see whether any of them have a very abnormal value, i.e. are an outlier. 
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Plot the boiling points to check for outliers. 
 plot(data_combined$data_wikidata.bp, 
@@ -172,7 +173,7 @@ plot(data_combined$data_wikidata.bp,
 
 None of the values in figure 1 have a very abnormal value. Thus, there are no outliers that need to be removed. Furthermore, one could expect that, in general, bigger alkanes have a higher boiling point. To test whether this relationship is also present in our dataset we plot the length of the smiles vs. the boiling points. 
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Plot length of smiles vs. boiling points to check for a correlation
 plot(stri_length(data_wikidata$smiles), 
@@ -188,7 +189,7 @@ As expected, in figure 2 we do indeed see that there is a trend towards higher b
 
 **3d)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as test set. Therefore, I split the data into a training and test set. I use 25% of my dataset as test set.
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Percentage of data to go into the test-set. Change this value to change the relative sizes of the training and test sets.
 percentage_test <- 0.25
@@ -208,7 +209,7 @@ Note: The error of both the null and PLS models is dependent on the random split
 **4. Null model** <br/>
 The null model is the most simple model possible; the mean of the data. This model can be used as a reference to see whether the PLS model performs better. 
 
-```{r include = TRUE}
+```{r include=TRUE, warning=FALSE}
 
 #Create null_model.
 null_model <- mean(train$data_wikidata.bp)
@@ -225,7 +226,7 @@ print(paste0("The error of the Null model is ", error_null_model))
 Here, I train the PLS model with the training data, and use the model to predict the boiling points of the test data. If you are unfamiliar with PLS, this is [video](https://www.youtube.com/watch?v=AxmqUKYeD-U) a good introduction. In the model I use leave-one-out (LOO) validation, because my data set is small. 
 
 
-```{r include = TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Training of the PLS model, using leave-one-out validation.
 PLS_model <- plsr(data_wikidata.bp ~ ., 
@@ -251,7 +252,7 @@ The function predict will predict the boiling points based on each mode in PLS_m
 **6. Results** <br/>
 **6a)** In order to identify the model with the best number of components, it is needed to plot the error vs. the number of components. 
 
-```{r include = TRUE} 
+```{r include=TRUE, message=FALSE, warning=FALSE}
 
 #Plot the error vs. the number of PLS components
 plot(error_PLS, 
@@ -268,7 +269,7 @@ From figure 3 we see can conclude that the error decreases with adding more comp
 
 **6b)** Using this PLS model with 3 components, I visualize how well it can predict boiling points based on the descriptors (described in section 2). To do this, I plot the predicted boiling points vs. the actual boiling points. If the prediction is perfect, we'd expect all the points to line up in a perfectly linear correlation.  
 
-```{r include = TRUE, message = FALSE, warning = FALSE}
+```{r warning=FALSE}
 
 #Plot the predicted data vs. the original data. 
 plot(test$data_wikidata.bp, 
