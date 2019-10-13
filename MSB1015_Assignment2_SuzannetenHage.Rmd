@@ -1,7 +1,7 @@
 ---
 title: "MSB1015_Assignment 2"
 author: "Suzanne ten Hage"
-date: "12 october 2019"
+date: "13 october 2019"
 output: html_notebook
 ---
 
@@ -103,7 +103,9 @@ data_descriptors <- eval.desc(parsed_smiles, descriptor_names)
 ```
 
 **3. Data pre-processing**
-3a) Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
+Before we can use the descriptors and boiling points to train a PLS model, some data pre-processing needs to be done. 
+
+**3a)** Not all boiling points in the database are in kelvin, which is the SI unit for temperature. Before I continue, I make sure all temperatures are in kelvin. 
 
 ```{r}
 
@@ -112,52 +114,55 @@ data_descriptors <- eval.desc(parsed_smiles, descriptor_names)
 celcius <-  which(grepl('degree Celsius', data_wikidata$bpUnitLabel))
 
 for (i in 1:length(celcius)) {
-  #Convert the value to kelvin
-  data_wikidata$bp[celcius[i]] <- data_wikidata$bp[celcius[i]] + 273.15
-  #Convert the label to kelvin. 
-  data_wikidata$bpUnitLabel[celcius[i]] <- 'kelvin'
-}
+   #Convert the value to kelvin
+   data_wikidata$bp[celcius[i]] <- data_wikidata$bp[celcius[i]] + 273.15
+   #Convert the label to kelvin. 
+   data_wikidata$bpUnitLabel[celcius[i]] <- 'kelvin'
+  }
 
 ##FAHRENHEIT -> KELVIN
 #Find all rownumbers of the values in Fahrenheit. 
 fahrenheit <- which(grepl('degree Fahrenheit',data_wikidata$bpUnitLabel))
 
 for (i in 1:length(fahrenheit)) {
-  #Convert the value to kelvin
-  data_wikidata$bp[fahrenheit[i]] <- (data_wikidata$bp[fahrenheit[i]] + 459.67) * (5/9)
-  #Convert the label to kelvin. 
-  data_wikidata$bpUnitLabel[fahrenheit[i]] <- 'kelvin'
-}
+   #Convert the value to kelvin
+   data_wikidata$bp[fahrenheit[i]] <- (data_wikidata$bp[fahrenheit[i]] + 459.67) * (5/9)
+   #Convert the label to kelvin. 
+   data_wikidata$bpUnitLabel[fahrenheit[i]] <- 'kelvin'
+  }
 
 ```
 
-3b) Combine the descriptors and boiling points in one dataset, so we can use this dataset for the PLS. I remove the columns with (almost) all zeros, because 
+**3b)** Combine the descriptors and boiling points in one dataset, so we can use this dataset for the PLS. I remove the columns with (almost) all zeros, because these descriptors do not have much predictive value. 
+
 ```{r}
 
-#Fuse the boiling points from data.raw and descriptors into one dataset. 
+#Fuse the boiling points from data_wikidata and data_descriptors into one dataset. 
 data_combined <- data.frame(data_descriptors, data_wikidata$bp)
 
-#Define which columns to remove. 
+#Define which columns to remove. To include one of these columns as a predictor, remove the column here.  
 remove_columns <- c("MDEC.13", "MDEC.14", "MDEC.22", "MDEC.23", "MDEC.24", "MDEC.33", "MDEC.34", "MDEC.44", "MDEO.11", "MDEO.12", "MDEO.22", "MDEN.11", "MDEN.12", "MDEN.13", "MDEN.22", "MDEN.23", "MDEN.33")
 
-#Remove all empty columns from the dataset.
+#Remove all chosen columns from the dataset.
 data_combined <- data_combined[ , -which(names(data_combined) %in% remove_columns)]
 
+#At the time of writing, this returns a dataframe of 7 variables describing 134 alkanes. 
 ```
 
-3c) To be able to test how well the model I train performs, it is necessary to keep a part of our data aside as testing data. In the following code you can easily change the size of the test data by adjusting percentage_test. 
+**3c)** To be able to test how well the model I train performs, it is necessary to keep a part of my data aside as testing data.
  
 ```{r}
 
-#Percentage of data to go into the test-set. 
+#Percentage of data to go into the test-set. Change this value to change the relative sizes of the training and test sets.
 percentage_test <- 0.25
 
-#Splitting data into a training and test set. 
+#Split the data into a training and test set. 
 set.seed(101) 
-sample = sample.split(data, SplitRatio = percentage_test)
-train = subset(data, sample == FALSE)
-test  = subset(data, sample == TRUE)
+sample = sample.split(data_combined, SplitRatio = percentage_test)
+train = subset(data_combined, sample == FALSE)
+test  = subset(data_combined, sample == TRUE)
 
+#At the time of writing 134 alkanes are split into a training set of 115 alkanes and test set of 19 alkanes. 
 ```
 
 **4. Null model**
